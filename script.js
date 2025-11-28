@@ -118,10 +118,32 @@ faceMesh.setOptions({
   minTrackingConfidence: 0.6
 });
 
-// Draw loop: only jewelry (video is real element behind canvas)
+// Every frame: draw video into canvas, then jewelry
 faceMesh.onResults((results) => {
-  // Clear overlay canvas
-  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  // Make sure canvas matches video size
+  if (videoElement.videoWidth && videoElement.videoHeight) {
+    if (
+      canvasElement.width !== videoElement.videoWidth ||
+      canvasElement.height !== videoElement.videoHeight
+    ) {
+      canvasElement.width = videoElement.videoWidth;
+      canvasElement.height = videoElement.videoHeight;
+    }
+  }
+
+  // Draw camera frame into canvas
+  if (videoElement.readyState >= 2) {
+    canvasCtx.drawImage(
+      videoElement,
+      0,
+      0,
+      canvasElement.width,
+      canvasElement.height
+    );
+  } else {
+    // If video not ready yet, clear canvas
+    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  }
 
   // Smooth face landmarks
   if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
@@ -140,7 +162,7 @@ faceMesh.onResults((results) => {
     smoothedFaceLandmarks = null;
   }
 
-  // Draw jewelry on top
+  // Draw jewelry on top of the video
   drawJewelry(smoothedFaceLandmarks, canvasCtx);
 });
 
@@ -157,12 +179,6 @@ async function startCamera(facingMode) {
   });
   camera.start();
 }
-
-// Sync canvas size with actual video size
-videoElement.addEventListener('loadedmetadata', () => {
-  canvasElement.width = videoElement.videoWidth;
-  canvasElement.height = videoElement.videoHeight;
-});
 
 // =============== Smoothing Helper ==================
 function smoothPoint(prev, current, factor = 0.4) {
@@ -241,18 +257,8 @@ if (captureBtn) {
 
 function capturePhoto() {
   try {
-    // Create a temporary canvas to merge video + overlay
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = canvasElement.width;
-    tempCanvas.height = canvasElement.height;
-    const tctx = tempCanvas.getContext('2d');
-
-    // Draw video frame
-    tctx.drawImage(videoElement, 0, 0, tempCanvas.width, tempCanvas.height);
-    // Draw overlay (jewelry)
-    tctx.drawImage(canvasElement, 0, 0, tempCanvas.width, tempCanvas.height);
-
-    const dataUrl = tempCanvas.toDataURL('image/png');
+    // Now the canvas ALREADY has video + jewelry
+    const dataUrl = canvasElement.toDataURL('image/png');
 
     const link = document.createElement('a');
     link.href = dataUrl;
@@ -262,7 +268,7 @@ function capturePhoto() {
     document.body.removeChild(link);
   } catch (err) {
     console.error('Error capturing photo', err);
-    alert("Couldn't capture image. Please try taking a normal screenshot.");
+    alert("Couldn't capture image: " + err.message);
   }
 }
 
