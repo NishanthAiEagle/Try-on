@@ -224,7 +224,7 @@ function drawJewelry(landmarks, ctx) {
     const h = w * (necklaceImg.height / necklaceImg.width);
 
     // Place the CENTER of the necklace box slightly below neck point
-    const centerYOffset = eyeDist * 0.80; // higher/lower on chest
+    const centerYOffset = eyeDist * 1.30; // higher/lower on chest
     const drawX = smoothedFacePoints.neck.x - w / 2;
     const drawY = smoothedFacePoints.neck.y + centerYOffset - h / 2;
 
