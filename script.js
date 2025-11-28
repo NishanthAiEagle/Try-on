@@ -222,22 +222,30 @@ function drawJewelry(landmarks, ctx) {
     );
   }
 
-  // ===== Necklace =====
-  if (necklaceImg) {
-    const w = eyeDist * 2.0; // neck width based on face width
-    const h = w * (necklaceImg.height / necklaceImg.width);
+ // ===== IMPROVED NECKLACE POSITION =====
+if (necklaceImg) {
+  
+  // Necklace width based on face width (eye distance)
+  // Reduced from 2.0 → 1.6 for more realistic width
+  const w = eyeDist * 1.6;
+  const h = w * (necklaceImg.height / necklaceImg.width);
 
-    const yOffsetNeck = -h * 0.35; // move slightly up towards neck
+  // Move necklace DOWN to chest area, not up the face
+  // Higher number = lower on chest
+  const yOffsetNeck = eyeDist * 0.8; 
 
-    ctx.drawImage(
-      necklaceImg,
-      smoothedFacePoints.neck.x - w / 2,
-      smoothedFacePoints.neck.y + yOffsetNeck,
-      w,
-      h
-    );
-  }
+  // Slight inward curve: moves anchor closer to neck center
+  const xOffset = eyeDist * 0.15;
+
+  ctx.drawImage(
+    necklaceImg,
+    smoothedFacePoints.neck.x - w / 2 + xOffset,
+    smoothedFacePoints.neck.y + yOffsetNeck,
+    w,
+    h
+  );
 }
+
 
 // ---------- Snapshot logic (unchanged) ----------
 function takeSnapshot() {
