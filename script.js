@@ -11,7 +11,7 @@ let lastSnapshotDataURL = '';
 let currentType = '';
 let smoothedLandmarks = null;
 
-// NEW: store smoothed positions for earrings & necklace
+// store smoothed positions for earrings & necklace
 let smoothedFacePoints = {};
 
 // ---------- Image loading helpers ----------
@@ -159,7 +159,7 @@ function smoothPoint(prev, current, factor = 0.4) {
   };
 }
 
-// ---------- NEW: Improved jewelry positioning & sizing ----------
+// ---------- Jewelry positioning & sizing ----------
 function drawJewelry(landmarks, ctx) {
   if (!landmarks) return;
 
@@ -222,30 +222,26 @@ function drawJewelry(landmarks, ctx) {
     );
   }
 
- // ===== IMPROVED NECKLACE POSITION =====
-if (necklaceImg) {
-  
-  // Necklace width based on face width (eye distance)
-  // Reduced from 2.0 → 1.6 for more realistic width
-  const w = eyeDist * 1.6;
-  const h = w * (necklaceImg.height / necklaceImg.width);
+  // ===== Necklace (improved) =====
+  if (necklaceImg) {
+    // Make width based on face width (eye distance),
+    // but not too huge
+    const w = eyeDist * 1.4;        // reduce if still too wide
+    const h = w * (necklaceImg.height / necklaceImg.width);
 
-  // Move necklace DOWN to chest area, not up the face
-  // Higher number = lower on chest
-  const yOffsetNeck = eyeDist * 0.8; 
+    // We want the TOP of necklace near the neck,
+    // so move image UP by part of its height
+    const yOffsetNeck = -h * 0.3;   // more negative = higher
 
-  // Slight inward curve: moves anchor closer to neck center
-  const xOffset = eyeDist * 0.15;
-
-  ctx.drawImage(
-    necklaceImg,
-    smoothedFacePoints.neck.x - w / 2 + xOffset,
-    smoothedFacePoints.neck.y + yOffsetNeck,
-    w,
-    h
-  );
+    ctx.drawImage(
+      necklaceImg,
+      smoothedFacePoints.neck.x - w / 2,
+      smoothedFacePoints.neck.y + yOffsetNeck,
+      w,
+      h
+    );
+  }
 }
-
 
 // ---------- Snapshot logic (unchanged) ----------
 function takeSnapshot() {
