@@ -1,4 +1,3 @@
-
 const videoElement = document.getElementById('webcam');
 const canvasElement = document.getElementById('overlay');
 const canvasCtx = canvasElement.getContext('2d');
@@ -11,6 +10,9 @@ let necklaceSrc = '';
 let lastSnapshotDataURL = '';
 let currentType = '';
 let smoothedLandmarks = null;
+
+// 🔹 NEW: smoothed positions for jewelry (from Project B)
+let smoothedFacePoints = {};
 
 function loadImage(src) {
   return new Promise((resolve) => {
@@ -112,6 +114,8 @@ faceMesh.onResults((results) => {
       }));
     }
     drawJewelry(smoothedLandmarks, canvasCtx);
+  } else {
+    smoothedLandmarks = null;
   }
 });
 
@@ -130,34 +134,73 @@ videoElement.addEventListener('loadedmetadata', () => {
 
 camera.start();
 
-function drawJewelry(landmarks, ctx) {
-  const earringScale = 0.07;
-  const necklaceScale = 0.18;
+// 🔹 NEW: helper from Project B to smooth individual points
+function smoothPoint(prev, current, factor = 0.4) {
+  if (!prev) return current;
+  return {
+    x: prev.x * (1 - factor) + current.x * factor,
+    y: prev.y * (1 - factor) + current.y * factor
+  };
+}
 
-  const leftEar = {
-    x: landmarks[132].x * canvasElement.width - 6,
-    y: landmarks[132].y * canvasElement.height - 16,
+// 🔁 UPDATED: Jewelry position + size copied from Project B
+function drawJewelry(landmarks, ctx) {
+  const earringScale = 0.078;   // from Project B
+  const necklaceScale = 0.252;  // from Project B
+
+  if (!landmarks) return;
+
+  const leftEarLandmark = landmarks[132];
+  const rightEarLandmark = landmarks[361];
+  const neckLandmark = landmarks[152];
+
+  let leftEarPos = {
+    x: leftEarLandmark.x * canvasElement.width - 16,
+    y: leftEarLandmark.y * canvasElement.height - 150
   };
-  const rightEar = {
-    x: landmarks[361].x * canvasElement.width + 6,
-    y: landmarks[361].y * canvasElement.height - 16,
+  let rightEarPos = {
+    x: rightEarLandmark.x * canvasElement.width + 16,
+    y: rightEarLandmark.y * canvasElement.height - 150
   };
-  const neck = {
-    x: landmarks[152].x * canvasElement.width - 8,
-    y: landmarks[152].y * canvasElement.height + 10,
+  let neckPos = {
+    x: neckLandmark.x * canvasElement.width - 8,
+    y: neckLandmark.y * canvasElement.height + 10
   };
+
+  // Smooth the positions frame-to-frame (from Project B)
+  smoothedFacePoints.leftEar = smoothPoint(smoothedFacePoints.leftEar, leftEarPos);
+  smoothedFacePoints.rightEar = smoothPoint(smoothedFacePoints.rightEar, rightEarPos);
+  smoothedFacePoints.neck = smoothPoint(smoothedFacePoints.neck, neckPos);
 
   if (earringImg) {
-    const width = earringImg.width * earringScale;
-    const height = earringImg.height * earringScale;
-    ctx.drawImage(earringImg, leftEar.x - width / 2, leftEar.y, width, height);
-    ctx.drawImage(earringImg, rightEar.x - width / 2, rightEar.y, width, height);
+    const w = earringImg.width * earringScale;
+    const h = earringImg.height * earringScale;
+    ctx.drawImage(
+      earringImg,
+      smoothedFacePoints.leftEar.x - w / 2,
+      smoothedFacePoints.leftEar.y,
+      w,
+      h
+    );
+    ctx.drawImage(
+      earringImg,
+      smoothedFacePoints.rightEar.x - w / 2,
+      smoothedFacePoints.rightEar.y,
+      w,
+      h
+    );
   }
 
   if (necklaceImg) {
-    const width = necklaceImg.width * necklaceScale;
-    const height = necklaceImg.height * necklaceScale;
-    ctx.drawImage(necklaceImg, neck.x - width / 2, neck.y, width, height);
+    const w = necklaceImg.width * necklaceScale;
+    const h = necklaceImg.height * necklaceScale;
+    ctx.drawImage(
+      necklaceImg,
+      smoothedFacePoints.neck.x - w / 2,
+      smoothedFacePoints.neck.y,
+      w,
+      h
+    );
   }
 }
 
