@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Virtual Jewels Try-On</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel&family=Poppins&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="video-container">
+    <video id="webcam" autoplay muted playsinline></video>
+    <canvas id="overlay"></canvas>
+  </div>
+  <div id="branding">
+    <img src="logo.png" alt="Overlay Jewels Logo" class="logo-icon" />
+  </div>
+  <div class="ui-buttons">
+    <button id="capture-btn" title="Capture look">
+      <img src="camera_icon.png" alt="Capture" />
+    </button>
+    <a id="location-btn" href="https://maps.app.goo.gl/gsTuBCVMUVk9cxYZ6" target="_blank" rel="noopener noreferrer">
+      <img src="location_icon.png" alt="Location" />
+    </a>
+  </div>
+  <div id="jewelry-mode" class="button-group">
+    <button onclick="toggleCategory('earrings')">EARRINGS</button>
+    <button onclick="toggleCategory('necklaces')">CHAINS</button>
+  </div>
+  <div id="subcategory-buttons" class="button-group" style="display: none;">
+    <button onclick="selectJewelryType(currentType, 'gold')">Gold</button>
+    <button onclick="selectJewelryType(currentType, 'diamond')">Diamond</button>
+  </div>
+  <div id="jewelry-options" class="options-group" style="display: none;"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
