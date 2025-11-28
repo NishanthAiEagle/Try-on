@@ -43,7 +43,6 @@ function toggleCategory(category) {
   document.getElementById('subcategory-buttons').style.display = 'flex';
   const subButtons = document.querySelectorAll('#subcategory-buttons button');
 
-  // Show only related subcategories
   subButtons.forEach(btn => {
     btn.style.display = btn.innerText.toLowerCase().includes(category)
       ? 'inline-block'
@@ -120,7 +119,6 @@ faceMesh.onResults((results) => {
     if (!smoothedLandmarks) {
       smoothedLandmarks = newLandmarks;
     } else {
-      // Smooth all landmarks slightly
       smoothedLandmarks = smoothedLandmarks.map((prev, i) => ({
         x: prev.x * 0.8 + newLandmarks[i].x * 0.2,
         y: prev.y * 0.8 + newLandmarks[i].y * 0.2,
@@ -199,12 +197,9 @@ function drawJewelry(landmarks, ctx) {
 
   // ===== Earrings =====
   if (earringImg) {
-    // Width relative to face width; tweak 0.42 if needed
     const w = eyeDist * 0.42;
     const h = w * (earringImg.height / earringImg.width);
-
-    // Slightly up so hook touches ear
-    const yOffset = -h * 0.10; // more negative = higher, closer to ear
+    const yOffset = -h * 0.10;
 
     ctx.drawImage(
       earringImg,
@@ -222,24 +217,18 @@ function drawJewelry(landmarks, ctx) {
     );
   }
 
-  // ===== Necklace (improved) =====
+  // ===== Necklace (new tuning) =====
   if (necklaceImg) {
-    // Make width based on face width (eye distance),
-    // but not too huge
-    const w = eyeDist * 1.4;        // reduce if still too wide
+    // Overall size
+    const w = eyeDist * 1.8; // widen a bit
     const h = w * (necklaceImg.height / necklaceImg.width);
 
-    // We want the TOP of necklace near the neck,
-    // so move image UP by part of its height
-    const yOffsetNeck = -h * 0.3;   // more negative = higher
+    // Place the CENTER of the necklace box slightly below neck point
+    const centerYOffset = eyeDist * 0.55; // higher/lower on chest
+    const drawX = smoothedFacePoints.neck.x - w / 2;
+    const drawY = smoothedFacePoints.neck.y + centerYOffset - h / 2;
 
-    ctx.drawImage(
-      necklaceImg,
-      smoothedFacePoints.neck.x - w / 2,
-      smoothedFacePoints.neck.y + yOffsetNeck,
-      w,
-      h
-    );
+    ctx.drawImage(necklaceImg, drawX, drawY, w, h);
   }
 }
 
@@ -255,9 +244,7 @@ function takeSnapshot() {
   snapshotCanvas.width = videoElement.videoWidth;
   snapshotCanvas.height = videoElement.videoHeight;
 
-  // Draw camera frame
   ctx.drawImage(videoElement, 0, 0, snapshotCanvas.width, snapshotCanvas.height);
-  // Draw jewelry with the same logic
   drawJewelry(smoothedLandmarks, ctx);
 
   lastSnapshotDataURL = snapshotCanvas.toDataURL('image/png');
